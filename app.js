@@ -1,12 +1,12 @@
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const passport = require('passport');
+// const passport = require('passport');
 require('dotenv').config();
-require('./config/passport');  // Passport 설정
+// require('./config/passport');  // Passport 설정
 
 const verifier = require('./routes/login');
-const authRoutes = require('./routes/auth');
+// const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const timetablesRoutes = require('./routes/timetables');
 const commentsRoutes = require('./routes/comments');
@@ -25,7 +25,7 @@ app.set('views', path.join(__dirname,'views'));
 
 
 // 라우팅
-app.use('/auth', authRoutes.router);
+// app.use('/auth', authRoutes.router);
 app.use('/posts', postRoutes);
 app.use('/login', verifier);
 app.use('/timetables', timetablesRoutes);
