@@ -90,7 +90,7 @@ verifier.post('/verify', async (req, res) => {
 
   try {
     const verificationResult = await pool.query('SELECT * FROM email_verification WHERE email = $1 AND verification_code = $2', [email, verificationCode]);
-
+    console.log(verificationResult.rows);
     if (verificationResult.rows.length === 0) {
       return res.status(400).json({ message: 'Invalid verification code.' });
     }

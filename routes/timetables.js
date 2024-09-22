@@ -27,12 +27,13 @@ router.get('/:email', authenticateToken, async (req, res) => {
 
 // 타임테이블 작성 처리
 router.post('/create', authenticateToken, async (req, res) => {
-    const { email, title, day, startTime, endTime, location, init_date } = req.body;
+
+    const { email, title, day, startTime, endTime, location } = req.body;
     
     try {
         await pool.query(
-            'INSERT INTO events (user_email, title, day, startTime, endTime, location, init_date) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-            [email, title, day, startTime, endTime, location, init_date]
+            'INSERT INTO events (user_email, title, day, startTime, endTime, location) VALUES ($1, $2, $3, $4, $5, $6)',
+            [email, title, day, startTime, endTime, location]
         );
         // 데이터를 삽입한 후, 필요한 페이지로 리다이렉트 또는 응답을 전송합니다.
         // res.redirect('/timetables'); // 또는 원하는 다른 페이지로 리다이렉트

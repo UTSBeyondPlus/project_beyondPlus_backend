@@ -55,8 +55,9 @@ router.post('/create', authenticateToken, async (req, res) => {
     const { email, post_id, content } = req.body;
 
     try {
-        await pool.query('INSERT INTO comments (user_id, post_id, content) VALUES ($1, $2, $3)', [email, post_id, content]);
-        res.redirect(`/comments/${post_id}`);
+        await pool.query('INSERT INTO comments (user_email, post_id, content) VALUES ($1, $2, $3)', [email, post_id, content]);
+        // res.redirect(`/comments/${post_id}`);
+        res.status(200).send({message:'comments upload.'})
     } catch (err) {
         console.error('Error saving comment:', err);
         res.status(500).send('Error saving comment');
@@ -70,16 +71,16 @@ router.post('/like/:commentId', authenticateToken, async (req, res) => {
 
     try {
         // 사용자가 이미 좋아요를 눌렀는지 확인
-        const likeResult = await pool.query('SELECT * FROM likes WHERE user_id = $1 AND comment_id = $2', [userId, commentId]);
+        const likeResult = await pool.query('SELECT * FROM likes WHERE user_email = $1 AND comment_id = $2', [userEmail, commentId]);
 
         if (likeResult.rows.length > 0) {
             return res.status(400).send('You have already liked this comment.');
         }
 
         // likes 테이블에 좋아요 추가
-        await pool.query('INSERT INTO likes (user_id, comment_id) VALUES ($1, $2)', [userEmail, commentId]);
+        await pool.query('INSERT INTO likes (user_email, comment_id) VALUES ($1, $2)', [userEmail, commentId]);
         // res.redirect('back');  // 페이지를 새로고침하여 업데이트 반영
-        res.status(200);
+        res.status(200).send({message:`${userEmail} likes comment ${commentId}`});
     } catch (err) {
         console.error('Error liking comment:', err);
         res.status(500).send('Error liking comment');
@@ -93,7 +94,7 @@ router.post('/unlike/:commentId', authenticateToken, async (req, res) => {
 
     try {
         // 사용자가 이미 좋아요를 눌렀는지 확인
-        const likeResult = await pool.query('SELECT * FROM likes WHERE user_id = $1 AND comment_id = $2', [userId, commentId]);
+        const likeResult = await pool.query('SELECT * FROM likes WHERE user_id = $1 AND comment_id = $2', [userEmail, commentId]);
 
         if (likeResult.rows.length === 0) {
             return res.status(400).send('You have not liked this comment.');
@@ -101,7 +102,8 @@ router.post('/unlike/:commentId', authenticateToken, async (req, res) => {
 
         // likes 테이블에서 좋아요 기록 삭제
         await pool.query('DELETE FROM likes WHERE user_id = $1 AND comment_id = $2', [userEmail, commentId]);
-        res.redirect('back');  // 페이지를 새로고침하여 업데이트 반영
+        // res.redirect('back');  // 페이지를 새로고침하여 업데이트 반영
+        res.status(200).send({message:`${userEmail} unlikes comment ${commentId}`});
     } catch (err) {
         console.error('Error unliking comment:', err);
         res.status(500).send('Error unliking comment');
