@@ -45,4 +45,53 @@ router.post('/create', authenticateToken, async (req, res) => {
     }
 });
 
+// 이벤트 삭제 처리
+router.delete('/:id', authenticateToken, async (req, res) => {
+    const eventId = req.params.id;
+
+    try {
+        const result = await pool.query('DELETE FROM events WHERE id = $1', [eventId]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        res.status(200).json({ message: 'Event deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting event:', err);
+        res.status(500).send('Error deleting event');
+    }
+});
+
+router.patch('/:id', authenticateToken, async (req, res) => {
+    const eventId = req.params.id;
+    const { title, day, startTime, endTime, location, init_date } = req.body;
+
+    try {
+        // 이벤트 존재 여부 확인
+        const postCheck = await pool.query('SELECT * FROM events WHERE id = $1', [eventId]);
+        if (!postCheck.rows.length) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        // 이벤트 수정
+        const result = await pool.query(
+            `UPDATE events 
+            SET title = COALESCE($1, title), 
+                day = COALESCE($2, day), 
+                startTime = COALESCE($3, startTime), 
+                endTime = COALESCE($4, endTime), 
+                location = COALESCE($5, location), 
+                init_date = COALESCE($6, init_date) 
+             WHERE id = $7 RETURNING *`,
+            [title, day, startTime, endTime, location, init_date, eventId]
+        );
+
+        res.status(200).json({ message: 'Event updated successfully', event: result.rows[0] });
+    } catch (err) {
+        console.error('Error updating event:', err);
+        res.status(500).json({ message: 'Error updating event', error: err.message });
+    }
+});
+
 module.exports = router;

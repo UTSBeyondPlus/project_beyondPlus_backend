@@ -76,4 +76,61 @@ router.post('/create', authenticateToken, upload.single('file'), async (req, res
   }
 });
 
+// 게시물 삭제 처리
+router.delete('/:postId', authenticateToken, async (req, res) => {
+  const { postId } = req.params;
+
+  if (isNaN(postId)) {
+    return res.status(400).json({ message: 'Invalid post ID' });
+  }
+
+  try {
+    await pool.query('BEGIN');
+
+    const deleteComments = 'DELETE FROM comments WHERE post_id = $1';
+    const deletePost = 'DELETE FROM posts WHERE id = $1 RETURNING id';
+
+    await pool.query(deleteComments, [postId]);
+    const { rowCount } = await pool.query(deletePost, [postId]);
+
+    if (!rowCount) {
+      await pool.query('ROLLBACK');
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    await pool.query('COMMIT');
+    res.json({ message: 'Post and related comments deleted successfully' });
+  } catch (err) {
+    await pool.query('ROLLBACK');
+    console.error('Error deleting post and comments:', err.message);
+    res.status(500).send('Error deleting post and related data');
+  }
+});
+
+// 게시물 수정 처리 (PATCH 요청)
+router.patch('/:postId', authenticateToken, async (req, res) => {
+  const postId = parseInt(req.params.postId, 10);
+  const { title, content } = req.body;
+
+  if (isNaN(postId) || !title || !content) {
+    return res.status(400).json({ message: 'Invalid input' });
+  }
+
+  try {
+    const postCheck = await pool.query('SELECT * FROM posts WHERE id = $1', [postId]);
+    if (!postCheck.rows.length) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const result = await pool.query(
+      'UPDATE posts SET title = $1, content = $2 WHERE id = $3 RETURNING *',
+      [title, content, postId]
+    );
+    res.json({ message: 'Post updated successfully', post: result.rows[0] });
+  } catch (err) {
+    console.error('Error updating post:', err);
+    res.status(500).json({ message: 'Error updating post', error: err.message });
+  }
+});
+
 module.exports = router;
