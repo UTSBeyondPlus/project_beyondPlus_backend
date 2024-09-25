@@ -122,4 +122,8 @@ verifier.post('/verify', async (req, res) => {
   }
 });
 
+verifier.get('/test', async (req, res) => {
+  res.render('login');
+});
+
 module.exports = verifier;

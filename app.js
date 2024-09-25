@@ -36,10 +36,34 @@ app.use('/uploadfiles', uploader);
 
 // 홈 페이지 (로그인 페이지)
 app.get('/', (req, res) => {
+  console.log(PORT, 'is allocated');
   res.render('login');
 });
 
-const PORT = process.env.PORT || 3000;
+app.get('/test', (req, res) => {
+  const queryParam = req.query.param;
+  console.log(PORT, 'is allocated by ', queryParam);
+  // res.send(PORT, 'is working...' ,queryParam);
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  if (PORT === 3000) { 
+    async function executeWithDelay() {
+      
+      // 10초 대기
+      await sleep(10000); // 10000 밀리초 = 10초
+      
+      return res.send(`${PORT} is working... ${queryParam} \n`);
+    }
+    
+    executeWithDelay();
+  }
+
+  else { res.send(`${PORT} is working... ${queryParam} \n`);};
+});
+
+const PORT = process.argv[2] || process.env.PORT || 3000; 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
