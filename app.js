@@ -11,6 +11,7 @@ const postRoutes = require('./routes/posts');
 const timetablesRoutes = require('./routes/timetables');
 const commentsRoutes = require('./routes/comments');
 const uploader = require('./routes/uploadFiles');
+const { hostname } = require('os');
 
 const app = express();
 
@@ -63,7 +64,8 @@ app.get('/test', (req, res) => {
   else { res.send(`${PORT} is working... ${queryParam} \n`);};
 });
 
-const PORT = process.argv[2] || process.env.PORT || 3000; 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+const PORT = process.argv[2] || process.env.PORT || 3000;
+hostName = '0.0.0.0'; 
+app.listen(PORT, hostName,() => {
+  console.log(`Server is running on port ${PORT} -- host : ${hostName}`);
 });
