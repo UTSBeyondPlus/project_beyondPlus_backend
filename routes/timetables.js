@@ -27,13 +27,14 @@ router.get('/:email', authenticateToken, async (req, res) => {
 
 // 타임테이블 작성 처리
 router.post('/create', authenticateToken, async (req, res) => {
-
-    const { email, title, day, startTime, endTime, location } = req.body;
+    const { email, title, day, startday, endday, starttime, endtime, location, init_date, semester } = req.body;
     
+console.log(req.body);
+
     try {
         await pool.query(
-            'INSERT INTO events (user_email, title, day, startTime, endTime, location) VALUES ($1, $2, $3, $4, $5, $6)',
-            [email, title, day, startTime, endTime, location]
+            'INSERT INTO events (user_email, title, day, startday, endday, starttime, endtime, location, init_date, semester) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+            [email, title, day, startday, endday, starttime, endtime, location, init_date, semester]
         );
         // 데이터를 삽입한 후, 필요한 페이지로 리다이렉트 또는 응답을 전송합니다.
         // res.redirect('/timetables'); // 또는 원하는 다른 페이지로 리다이렉트
@@ -65,7 +66,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
 router.patch('/:id', authenticateToken, async (req, res) => {
     const eventId = req.params.id;
-    const { title, day, startTime, endTime, location, init_date } = req.body;
+    const { title, day, startday, endday, semester, startTime, endTime, location, init_date } = req.body;
 
     try {
         // 이벤트 존재 여부 확인
@@ -77,14 +78,18 @@ router.patch('/:id', authenticateToken, async (req, res) => {
         // 이벤트 수정
         const result = await pool.query(
             `UPDATE events 
-            SET title = COALESCE($1, title), 
+            SET
+                title = COALESCE($1, title),
                 day = COALESCE($2, day), 
-                startTime = COALESCE($3, startTime), 
-                endTime = COALESCE($4, endTime), 
-                location = COALESCE($5, location), 
-                init_date = COALESCE($6, init_date) 
-             WHERE id = $7 RETURNING *`,
-            [title, day, startTime, endTime, location, init_date, eventId]
+                startday = COALESCE($3, startday), 
+                endday = COALESCE($4, endday), 
+                semester = COALESCE($5, semester),
+                startTime = COALESCE($6, startTime), 
+                endTime = COALESCE($7, endTime), 
+                location = COALESCE($8, location), 
+                init_date = COALESCE($9, init_date) 
+            WHERE id = $10 `,
+            [title, day, startday, endday, semester, startTime, endTime, location, init_date, eventId]
         );
 
         res.status(200).json({ message: 'Event updated successfully', event: result.rows[0] });
@@ -93,5 +98,6 @@ router.patch('/:id', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Error updating event', error: err.message });
     }
 });
+
 
 module.exports = router;
