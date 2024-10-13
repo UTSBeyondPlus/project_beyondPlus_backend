@@ -26,26 +26,53 @@ router.get('/:email', authenticateToken, async (req, res) => {
         res.status(500).send('Error loading comments');}});
 
 // 타임테이블 작성 처리
+// Timetable creation handler
+// Timetable creation handler
 router.post('/create', authenticateToken, async (req, res) => {
-    const { email, title, day, startday, endday, starttime, endtime, location, init_date, semester } = req.body;
+    console.log('Received request body:', JSON.stringify(req.body, null, 2));
     
-console.log(req.body);
+    let { email, title, day, startday, endday, starttime, endtime, location, init_date, semester } = req.body;
+    
+    console.log('Parsed data:');
+    console.log('Email:', email);
+    console.log('Title:', title);
+    console.log('Day:', day);
+    console.log('Start Day:', startday);
+    console.log('End Day:', endday);
+    console.log('Start Time:', starttime);
+    console.log('End Time:', endtime);
+    console.log('Location:', location);
+    console.log('Init Date:', init_date);
+    console.log('Semester:', semester);
+
+    // Set init_date to current date and time if not provided
+    if (!init_date) {
+        init_date = new Date().toISOString();
+        console.log('Init Date was not provided. Set to current date and time:', init_date);
+    }
+
+    // Validate required fields
+    if (!email || !title || !day || !starttime || !endtime || !semester) {
+        console.log('Validation failed: Missing required fields');
+        return res.status(400).json({ message: 'Missing required fields' });
+    }
 
     try {
-        await pool.query(
-            'INSERT INTO events (user_email, title, day, startday, endday, starttime, endtime, location, init_date, semester) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+        console.log('Attempting to insert data into database...');
+        const result = await pool.query(
+            'INSERT INTO events (user_email, title, day, startday, endday, starttime, endtime, location, init_date, semester) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
             [email, title, day, startday, endday, starttime, endtime, location, init_date, semester]
         );
-        // 데이터를 삽입한 후, 필요한 페이지로 리다이렉트 또는 응답을 전송합니다.
-        // res.redirect('/timetables'); // 또는 원하는 다른 페이지로 리다이렉트
-        //또는 
-        res.status(201).send('Schedule created successfully');
+        
+        console.log('Data inserted successfully. Inserted row:', JSON.stringify(result.rows[0], null, 2));
+        
+        res.status(201).json({ message: 'Schedule created successfully', data: result.rows[0] });
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Error creating schedule');
+        console.error('Database error:', err);
+        console.error('Error stack:', err.stack);
+        res.status(500).json({ message: 'Error creating schedule', error: err.message });
     }
 });
-
 // 이벤트 삭제 처리
 router.delete('/:id', authenticateToken, async (req, res) => {
     const eventId = req.params.id;
