@@ -27,7 +27,7 @@
     |-- posts.ejs  
     `-- timetables.ejs</pre>
 
-# ⚙️ Server Structure
+## ⚙️ Server Structure
 ```mermaid
 graph TD;
     App[Frontend App] --> Server[App Server];
