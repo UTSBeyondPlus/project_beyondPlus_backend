@@ -32,6 +32,7 @@ const upload = multer({ // Multer 설정
 
 // 파일 업로드 라우트
 uploder.post('/', upload.single('file'), (req, res) => {
+  
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
   }
