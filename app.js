@@ -12,36 +12,9 @@ const commentsRoutes = require('./routes/comments');
 const uploader = require('./routes/uploadFiles');
 const { hostname } = require('os');
 
-const winston = require("winston"); // loglibrary
+const logger = require("./logger"); // loglibrary
 
 const app = express();
-
-
-//log config
-
-const formatByLevel = winston.format((info) => {
-  if (info.level === "http") {
-    info.message = `🌐 HTTP: ${info.message}`;
-  } else if (info.level === "info") {
-    info.message = `[INFO] ${info.message}`;
-  }
-  return info;
-})();
-
-const logger = winston.createLogger({
-  level: "debug",
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.printf(({ timestamp, level, message }) => {
-      return `[${timestamp}]:[${level.toUpperCase()}]: ${message}`;
-    })
-  ),
-  transports: [
-    new winston.transports.Console(), // 콘솔에 모든 로그 출력
-    new winston.transports.File({ filename: 'logs/all-logs.log' }), // 파일에 모든 로그 저장
-  ],
-});
-
 
 // middleware
 app.use(express.urlencoded({ extended: true }));
@@ -52,7 +25,7 @@ app.use((err, req, res, next) => {
   res.status(500).send("서버 오류 발생!");
 });
 app.use((req, res, next) => {
-  logger.http(`[${req.method}] ${req.url} - ${new Date().toISOString()} - IP:${req.ip} - ${JSON.stringify(req.body)}`);
+  logger.http(`[${req.method}]:[${req.hostname}:$${process.argv[2] ? process.argv[2] : (process.env.PORT ? process.env.PORT : 3000 )}]:${req.url} - IP:${req.ip} - ${JSON.stringify(req.body)}`);
   next();
 });
 

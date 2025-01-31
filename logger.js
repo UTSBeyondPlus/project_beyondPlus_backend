@@ -1,5 +1,6 @@
-// log code sample
 const winston = require("winston");
+
+//log config
 
 const formatByLevel = winston.format((info) => {
   if (info.level === "http") {
@@ -15,61 +16,12 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.printf(({ timestamp, level, message }) => {
-      return `[${timestamp}]:[${level.toUpperCase()}]: ${message}`;
+      return `[${timestamp}]:[:${process.argv[2] ? process.argv[2] : (process.env.PORT ? process.env.PORT : 3000 )}]:[${level.toUpperCase()}]: ${message}`;
     })
   ),
   transports: [
-    // ✅ 1. info 로그: 콘솔 + 파일 (텍스트)
-    new winston.transports.File({
-      filename: "logs/info.log",
-      level: "info",
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.printf(({ timestamp, message }) => {
-          return `[${timestamp}] ${message}`;
-        })
-      ),
-    }),
-    new winston.transports.Console({
-      level: "info",
-      format: winston.format.combine(
-        winston.format.colorize(), // 콘솔 색상 적용
-        formatByLevel, // 메시지 변환
-        winston.format.timestamp(),
-        winston.format.printf(({ timestamp, message }) => {
-          return `[${timestamp}] ${message}`;
-        })
-      ),
-    }),
-
-    // ✅ 2. http 로그: 콘솔 + 파일 (JSON)
-    new winston.transports.File({
-      filename: "logs/http.log",
-      level: "http",
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json() // JSON 포맷
-      ),
-    }),
-    new winston.transports.Console({
-      level: "http",
-      format: winston.format.combine(
-        winston.format.colorize(),
-        formatByLevel,
-        winston.format.timestamp(),
-        winston.format.json(),
-        // winston.format.printf(({ message }) => message)
-      ),
-    }),
+    new winston.transports.Console(), // 콘솔에 모든 로그 출력
+    new winston.transports.File({ filename: 'logs/all-logs.log' }), // 파일에 모든 로그 저장
   ],
 });
-
-app.use((req, res, next) => {
-  logger.http({ method: req.method, url: req.url, timestamp: new Date().toISOString() });
-  next();
-});
-
-app.use((err, req, res, next) => {
-  logger.error({ message: err.message, stack: err.stack });
-  res.status(500).send("서버 오류 발생!");
-});
+module.exports = logger;
